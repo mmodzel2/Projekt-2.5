@@ -1,133 +1,171 @@
 #include <iostream>
-
-#include "equation.hpp"
-#include "matrix.hpp"
-
 #include <ctime>
 #include <cstdlib>
 #include <sstream>
+#include <assert.h>
+
+#include "console.hpp"
+#include "equation.hpp"
+#include "matrix.hpp"
 
 using namespace std;
 
-int main()
-{
-    srand(time(NULL));
-    Matrix <int> *m = new Matrix <int> (2,2);
-    Matrix <int> *m1 = new Matrix <int> (2,2);
-    Matrix <double> *m6 = new Matrix <double> (3,3);
-    Matrix <double> *m2 = new Matrix <double> (6,6);
-    Matrix <double> *B = new Matrix <double> (6,1);
-    cout << m->get(0,0) << endl;
-    cout << m->get(0,1) << endl;
-    cout << m->get(1,0) << endl;
-    cout << m->get(1,1) << endl;
-    cout << m->set(0,1,90) << endl;
-    cout << m->get(0,1) << endl;
+unsigned int help(Console* console, void** args);
+unsigned int test(Console* console, void** args);
+unsigned int test_assert(Console* console, void** args);
 
-    cout << m1->get(0,0) << endl;
-    cout << m1->get(0,1) << endl;
-    cout << m1->get(1,0) << endl;
-    cout << m1->get(1,1) << endl;
-    cout << m1->set(0,1,1) << endl;
-    cout << m1->set(1,1,1) << endl;
-    cout << m1->get(0,1) << endl;
+int main(){
+    Console* console;
+    console = new Console(cout);
+    string str;
 
-    /*cout << m1->set(0,0,1) << endl;
-    cout << m1->set(0,1,1) << endl;
-    cout << m1->set(1,0,2) << endl;
-    cout << m1->set(1,1,1) << endl;
-    cout << "TEST: " << m1->det() << endl;*/
-
-    /*cout << m6->set(0,0,1) << endl;
-    cout << m6->set(0,1,1) << endl;
-    cout << m6->set(0,2,2) << endl;
-    cout << m6->set(1,0,1) << endl;
-    cout << m6->set(1,1,1) << endl;
-    cout << m6->set(1,2,1) << endl;
-    cout << m6->set(2,0,0) << endl;
-    cout << m6->set(2,1,0) << endl;
-    cout << m6->set(2,2,0) << endl;
-
-    char k[3] = {0,0,1};
-    char l[3] = {1,0,0};
-    cout << "TEST6: " << m6->det(k,l) << endl;
-    cout << "TEST7: " << m6->deg() << endl;*/
-
-    for (int i = 0; i < 3; i++){
-        //for (int j = 0; j < 3; j++) cout << m2->set(i,j,i+j) << endl;
-        //cout << m2->set(i,2,i) << endl;
-        //cout << m2->set(i,0,0) << endl;
-        cout << m2->set(i,i,1) << endl;
+    if (console == nullptr){
+        cout << "Error. No free memory." << endl;
+        return 1;
     }
-    //cout << m2->set(0,0,0) << endl;
-    //cout << m2->set(1,1,0) << endl;
-    //cout << m2->set(2,2,0) << endl;
-     //m2->set(8,8,0);
-    cout << m->set(0,0,1) << endl;
-    cout << m->set(0,0,1) << endl;
 
+    //register commands to graphic interface
+    console->register_instruction(Matrix<double>::Create_Matrix,"create",4,8,7,7,22);
+    console->register_instruction(Matrix<double>::Add_Matrix,"add",2,11,11);
+    console->register_instruction(Matrix<double>::Mul_Matrix,"mul",2,11,11);
+    console->register_instruction(Matrix<double>::Det_Matrix,"det",1,11);
+    console->register_instruction(Matrix<double>::Rank_Matrix,"rank",1,11);
+    console->register_instruction(Matrix<double>::Look_Matrix,"look",1,11);
+    console->register_instruction(Matrix<double>::Characteristic_Matrix,"c",1,11);
+    console->register_instruction(Matrix<double>::Get_Matrix,"get",3,11,7,7);
+    console->register_instruction(Matrix<double>::Set_Matrix,"set",4,11,7,7,10);
+    console->register_instruction(Matrix<double>::Delete_Matrix,"delete",1,11);
 
-    /**m+=*m1;
-    cout << "Sum: " << m->get(0,1) << endl;
-    *m+=*m1;
-    *m+=*m1;
-    *m+=*m1;
-    *m+=*m1;
-    *m+=*m1;
-    cout << "Sum: " << m->get(0,1) << endl;
+    console->register_instruction(matrix_equation,"solve",2,11,11);
 
-    Matrix <int> m2 = *m+*m1;
-    cout << "Sum: " << m2.get(0,1) << endl;*/
+    console->register_instruction(help,"help",0);
+    console->register_instruction(help,"h",0);
 
-    /*Matrix <int> m3 = *m**m1;
-    cout << "Mul: " << m3.get(0,0) << endl;
-    cout << "Mul: " << m3.get(0,1) << endl;
-    cout << "Mul: " << m3.get(1,0) << endl;
-    cout << "Mul: " << m3.get(1,1) << endl;
+    console->register_instruction(test,"test",0);
+    console->register_instruction(test,"t",0);
 
-    cout << m3.det() << endl;
-    cout << "1111111111111111111111111111111111111" << endl;
-    cout << "Determination: " << m2->det() << endl;
-
-    //Matrix <int>* m4 = m2->inverse();
-    //cout << "Determination: " << m4->det() << endl;*/
-
-    cout << "Degree: " << m2->deg() << endl;
-
-    double* charac = m2->characteristic();
-    for (unsigned long i = 0; i <= m2->get_rows(); i++){
-        cout << charac[m2->get_rows()-i] << " ";
+    cout << "Write an instruction:" << endl;
+    while(1){
+        getline(cin,str);
+        if (str == "exit" || str == "quit") break;
+        console->parse(str.c_str());
     }
-    cout << endl << endl;
 
-    char** minor = m2->get_minor();
-    if (minor != nullptr){
-        std::cout << "Hehehe: " << (int)minor[0][0] << " " << (int)minor[0][1] << " " << (int)minor[0][2] << " " << (int)minor[1][0] << " " << (int)minor[1][1] << " " << (int)minor[1][2] << std::endl;
-    }
-    cout << "Start..." << endl;
-    m2->set(0,0,2);
-    m2->set(0,1,3);
-    m2->set(0,2,5);
-    m2->set(0,3,0);
-    m2->set(1,0,1);
-    m2->set(1,1,1);
-    m2->set(1,2,0);
-    m2->set(2,0,1);
-    m2->set(2,1,1);
-    m2->set(2,2,1);
-    m2->set(3,2,0);
-    m2->set(3,3,0);
+    return 0;
+}
 
-    B->set(0,0,1);
-    B->set(1,0,2);
-    B->set(2,0,1);
-    B->set(3,0,4);
-    cout << "Degree: " << m2->deg() << endl;
-    //cout << (equation_independent(*m2, *B)).get(0,0) << endl;
-    stringstream *sstream = equation(*m2, *B);
-    if (sstream != nullptr){
-        for (unsigned long i = 0; i < m2->get_columns(); i++) cout << "x" << i << " = " << sstream[i].str() << endl;
-    } else cout << "No solution" << endl;
+unsigned int help(Console* console, void** args){
+    (console->get_stream()) << "create [matrix_name] [rows] [columns] [coefficients]" << std::endl;
+    (console->get_stream()) << "add [matrix_name1] [matrix_name2]" << std::endl;
+    (console->get_stream()) << "mul [matrix_name1] [matrix_name2]" << std::endl;
+    (console->get_stream()) << "det [matrix_name]" << std::endl;
+    (console->get_stream()) << "rank [matrix_name]" << std::endl;
+    (console->get_stream()) << "look [matrix_name] - write coefficients" << std::endl;
+    (console->get_stream()) << "c [matrix_name] - show characteristic" << std::endl;
+    (console->get_stream()) << "solve [matrix_name_A] [matrix_name_B]" << std::endl;
+    (console->get_stream()) << "get [matrix_name] [row] [column]" << std::endl;
+    (console->get_stream()) << "set [matrix_name] [row] [column] [coefficient]" << std::endl;
+    (console->get_stream()) << "delete [matrix_name]" << std::endl;
+
+    return 0;
+}
+
+unsigned int test(Console* console, void** args){
+    test_assert(console,args);
+
+    (console->get_stream()) << "create testA 4 4 1 2 3 4 3 5 6 9 4 5 3 2 0 0 0 0" << std::endl;
+    console->parse("create testA 4 4 1 2 3 4 3 5 6 9 4 5 3 2 0 0 0 0");
+    (console->get_stream()) << "create testB 4 1 1 2 3 0" << std::endl;
+    console->parse("create testB 4 1 1 2 3 0");
+    (console->get_stream()) << "look testA" << std::endl;
+    console->parse("look testA");
+    (console->get_stream()) << "look testB" << std::endl;
+    console->parse("look testB");
+    (console->get_stream()) << "det testA" << std::endl;
+    console->parse("det testA");
+    (console->get_stream()) << "rank testA" << std::endl;
+    console->parse("rank testA");
+    (console->get_stream()) << "solve testA testB" << std::endl;
+    console->parse("solve testA testB");
+
+    (console->get_stream()) << "mul testA testB" << std::endl;
+    console->parse("mul testA testB");
+    (console->get_stream()) << "look testA" << std::endl;
+    console->parse("look testA");
+
+    (console->get_stream()) << "add testA testB" << std::endl;
+    console->parse("add testA testB");
+    (console->get_stream()) << "look testA" << std::endl;
+    console->parse("look testA");
+
+    (console->get_stream()) << "delete testA" << std::endl;
+    console->parse("delete testA");
+    (console->get_stream()) << "delete testB" << std::endl;
+    console->parse("delete testB");
+
+    return 0;
+}
+
+unsigned int test_assert(Console* console, void** args){
+    Matrix <double> *m = new Matrix <double> (2,2);
+    Matrix <double> *m1 = new Matrix <double> (2,2);
+
+    m->set(0,0,1);
+    assert(m->get(0,0) == 1);
+    assert(m->get(0,1) == 0);
+    assert(m->get(1,0) == 0);
+    assert(m->get(1,1) == 0);
+
+    m->set(1,1,1);
+
+    m1->set(0,0,3);
+    m1->set(0,1,3);
+    m1->set(1,0,3);
+    m1->set(1,1,3);
+
+    (*m1)+=(*m);
+
+    assert(m1->get(0,0) == 4);
+    assert(m1->get(0,1) == 3);
+    assert(m1->get(1,0) == 3);
+    assert(m1->get(1,1) == 4);
+
+    assert(m1->get(3,3) == 0); //out of bound
+
+    (*m1)*=(*m);
+
+    assert(m1->get(0,0) == 4);
+    assert(m1->get(0,1) == 3);
+    assert(m1->get(1,0) == 3);
+    assert(m1->get(1,1) == 4);
+
+    assert(m1->get(2,1) == 0); //out of bound
+    assert(m1->get(2,2) == 0); //out of bound
+
+    assert(m->det() == 1);
+
+    Matrix <double> *m2 = m->inverse();
+    assert(m2 != nullptr); //det = 1
+
+    assert(m2->get(0,0) == 1);
+    assert(m2->get(0,1) == 0);
+    assert(m2->get(1,0) == 0);
+    assert(m2->get(1,1) == 1);
+
+    Matrix <double> *m3 = m2->transpose();
+    assert(m3 != nullptr);
+
+    assert(m3->get(0,0) == 1);
+    assert(m3->get(0,1) == 0);
+    assert(m3->get(1,0) == 0);
+    assert(m3->get(1,1) == 1);
+
     delete m;
     delete m1;
+    delete m2;
+    delete m3;
+
+    return 0;
 }
+
+

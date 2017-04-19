@@ -1,6 +1,8 @@
 #ifndef _MATRIX_HPP
 #define _MATRIX_HPP
 
+#include "console.hpp"
+
 #include <algorithm>
 #include <iostream>
 
@@ -42,6 +44,17 @@ template <class type>
             double* characteristic() const;
 
             char** get_minor(char* n = nullptr, char* m = nullptr, unsigned long matrix_degree = 0) const;
+
+            static unsigned int Create_Matrix(Console* console, void** args);
+            static unsigned int Add_Matrix(Console* console, void** args);
+            static unsigned int Mul_Matrix(Console* console, void** args);
+            static unsigned int Det_Matrix(Console* console, void** args);
+            static unsigned int Rank_Matrix(Console* console, void** args);
+            static unsigned int Look_Matrix(Console* console, void** args);
+            static unsigned int Characteristic_Matrix(Console* console, void** args);
+            static unsigned int Get_Matrix(Console* console, void** args);
+            static unsigned int Set_Matrix(Console* console, void** args);
+            static unsigned int Delete_Matrix(Console* console, void** args);
     };
 
 template <class type>
@@ -236,15 +249,18 @@ template <class type>
     Matrix<type> &Matrix<type>::operator*=(const Matrix<type> &m){
         type sum;
         if (this->columns_ == m.get_rows()) {
-            for (unsigned long i = 0; i < this->rows_; i++){
+            Matrix<type> *temp = new Matrix <type> (*this);
+            this->expand(this->rows_, m.get_columns());
+            for (unsigned long i = 0; i < temp->get_rows(); i++){
                 for (unsigned long j = 0; j < m.get_columns(); j++){
                     sum = type(0);
-                    for (unsigned long k = 0; k < this->columns_; k++){
-                        sum += (this->get(i,k)*m.get(k,j));
+                    for (unsigned long k = 0; k < temp->get_columns(); k++){
+                        sum += (temp->get(i,k)*m.get(k,j));
                     }
                     this->set(i, j, sum);
                 }
             }
+            delete temp;
         }
             return *this;
     }
@@ -547,5 +563,180 @@ template <class type>
         }
         return ret;
     }
+
+template <class type>
+    unsigned int Matrix<type>::Create_Matrix(Console* console, void** args){
+        if (args[0] == nullptr || args[1] == nullptr || args[2] == nullptr || args[3] == nullptr) return 1;
+        if (*((unsigned int*)(args[1]))*(*((unsigned int*)(args[2]))) != *((unsigned int*)(args[3]))){
+            (console->get_stream()) << "Bad matrix parameters. Cannot create new matrix." << std::endl;
+            return 1;
+        }
+
+        Matrix<type> *m = new Matrix<type>(*((unsigned int*)(args[1])),*((unsigned int*)(args[2])));
+        unsigned int ret = console->register_variable((const char *)args[0], m);
+        if (ret == 1 || m == nullptr){
+            if (m != nullptr) delete m;
+            (console->get_stream()) << "Lack of free memory. Matrix cannot be created." << std::endl;
+            return 2;
+        } else if (ret == 3) {
+            delete m;
+            (console->get_stream()) << "Variable name reserved. Cannot create matrix with given variable name." << std::endl;
+            return 1;
+        }
+
+        unsigned long k = 0;
+        for (unsigned long i = 0; i < *((unsigned int*)(args[1])); i++){
+            for (unsigned long j = 0; j < *((unsigned int*)(args[2])); j++){
+                m->set(i,j,*((double*)(args[4+k])));
+                k++;
+            }
+        }
+
+        (console->get_stream()) << "Matrix has been created." << std::endl;
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Add_Matrix(Console* console, void** args){
+        if (args[0] == nullptr || args[1] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        Matrix<type> *m = (Matrix<type> *)args[0];
+        Matrix<type> *n = (Matrix<type> *)args[1];
+
+        if (m->get_columns() != n->get_columns() || m->get_rows() != n->get_rows()){
+            (console->get_stream()) << "Matrix with wrong size." << std::endl;
+            return 1;
+        }
+        (*m)+=(*n);
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Mul_Matrix(Console* console, void** args){
+        if (args[0] == nullptr || args[1] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        Matrix<type> *m = (Matrix<type> *)args[0];
+        Matrix<type> *n = (Matrix<type> *)args[1];
+
+        if (n->get_rows() != m->get_columns()){
+            (console->get_stream()) << "Matrix with wrong size." << std::endl;
+            return 1;
+        }
+        (*m)*=(*n);
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Det_Matrix(Console* console, void** args){
+        if (args[0] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        (console->get_stream()) << "Det: " << ((Matrix<type> *)args[0])->det() << std::endl;
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Rank_Matrix(Console* console, void** args){
+        if (args[0] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        (console->get_stream()) << "Rank: " << ((Matrix<type> *)args[0])->deg() << std::endl;
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Look_Matrix(Console* console, void** args){
+        if (args[0] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        Matrix<type> *m = (Matrix<type> *)args[0];
+        for (unsigned long i = 0; i < m->get_rows(); i++){
+            for (unsigned long j = 0; j < m->get_columns(); j++){
+                (console->get_stream()) << m->get(i,j) << " ";
+            }
+            (console->get_stream()) << std::endl;
+        }
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Characteristic_Matrix(Console* console, void** args){
+        unsigned long i = 0;
+        if (args[0] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        double* c = ((Matrix<type> *)args[0])->characteristic();
+        if (c == nullptr){
+            (console->get_stream()) << "Matrix is not nxn." << std::endl;
+            return 1;
+        }
+        for (i = 0; i < ((Matrix<type> *)args[0])->get_rows()-2; i++){
+            (console->get_stream()) << c[i] << "x^" << i << "+";
+        }
+        (console->get_stream()) << c[i++] << "x" << "+";
+        (console->get_stream()) << c[i] << std::endl;
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Get_Matrix(Console* console, void** args){
+        if (args[0] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        (console->get_stream()) << ((Matrix<type> *)args[0])->get(*((unsigned long*)args[1]),*((unsigned long*)args[1])) << std::endl;
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Set_Matrix(Console* console, void** args){
+        if (args[0] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        ((Matrix<type> *)args[0])->set(*((unsigned long*)args[1]),*((unsigned long*)args[1]),*((double*)args[2]));
+
+        return 0;
+    }
+
+template <class type>
+    unsigned int Matrix<type>::Delete_Matrix(Console* console, void** args){
+        if (args[0] == nullptr){
+                (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
+                return 1;
+        }
+
+        console->remove_variable(args[0]);
+        delete ((Matrix<type> *)args[0]);
+
+        (console->get_stream()) << "Matrix removed." << std::endl;
+
+        return 0;
+    }
+
+
 
 #endif
