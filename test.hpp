@@ -1,4 +1,3 @@
-#ifndef _TEST_HPP
 /*
 * Name: test.hpp
 * Purpose: Matrix and solving equations
@@ -6,6 +5,7 @@
 * @version 1.0 20-04-2017
 */
 
+#ifndef _TEST_HPP
 #define _TEST_HPP
 
 #include <assert.h>
