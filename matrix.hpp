@@ -1,3 +1,10 @@
+/*
+* Name: matrix.hpp
+* Purpose: Matrix and solving equations
+* @author mmodzel2
+* @version 1.0 20-04-2017
+*/
+
 #ifndef _MATRIX_HPP
 #define _MATRIX_HPP
 
@@ -35,7 +42,7 @@ template <class type>
             Matrix<type> &operator*=(const Matrix<type> &m);
 
             type det(char* n = nullptr, char* m = nullptr) const;
-            unsigned long deg(char* n = nullptr, char* m = nullptr) const;
+            unsigned long rank(char* n = nullptr, char* m = nullptr) const;
 
             Matrix<type>* adjugate() const;
             Matrix<type>* inverse() const;
@@ -43,8 +50,9 @@ template <class type>
 
             double* characteristic() const;
 
-            char** get_minor(char* n = nullptr, char* m = nullptr, unsigned long matrix_degree = 0) const;
+            char** get_minor(char* n = nullptr, char* m = nullptr, unsigned long matrix_ranks = 0) const;
 
+            //functions for console interface
             static unsigned int Create_Matrix(Console* console, void** args);
             static unsigned int Add_Matrix(Console* console, void** args);
             static unsigned int Mul_Matrix(Console* console, void** args);
@@ -69,11 +77,11 @@ template <class type>
             rows_ = M.get_rows();
             columns_ = M.get_columns();
 
-            if (rows_ != 0 && columns_ != 0){
+            if (rows_ != 0 && columns_ != 0){ //copy context of second matrix
                     coefficients_ = new type[rows_*columns_];
                     for (unsigned long i = 0; i < rows_; i++){
                         for (unsigned long j = 0; j < columns_; j++){
-                            coefficients_[(i*columns_)+j] = M.get(i,j);
+                            coefficients_[(i*columns_)+j] = M.get(i,j); //copy coefficeint from second matrix
                         }
                     }
             }
@@ -83,11 +91,11 @@ template <class type>
             rows_ = M.get_rows();
             columns_ = M.get_columns();
 
-            if (rows_ != 0 && columns_ != 0){
+            if (rows_ != 0 && columns_ != 0){ //copy context of second matrix
                     coefficients_ = new type[rows_*columns_];
                     for (unsigned long i = 0; i < rows_; i++){
                         for (unsigned long j = 0; j < columns_; j++){
-                            coefficients_[(i*columns_)+j] = M.get(i,j);
+                            coefficients_[(i*columns_)+j] = M.get(i,j); //copy coefficeint from second matrix
                         }
                     }
             }
@@ -96,7 +104,7 @@ template <class type>
     Matrix <type>::Matrix(unsigned long rows, unsigned long columns){
         rows_ = rows;
         columns_ = columns;
-        if (rows == 0 || columns == 0)
+        if (rows == 0 || columns == 0) //null matrix
             coefficients_ = nullptr;
         else {
             coefficients_ = new type[rows*columns];
@@ -106,7 +114,6 @@ template <class type>
                     coefficients_[i*columns+j] = type(0);
                 }
             }
-            //std::fill(coefficients_, coefficients_+rows*columns*sizeof(type), type(0));
         }
     }
 template <class type>
@@ -136,16 +143,16 @@ template <class type>
         type* pointer;
         unsigned long k,l;
 
-        if (rows == rows_ && columns == columns_) return;
-        else if (rows == 0 || columns == 0){
+        if (rows == rows_ && columns == columns_) return; //matrix is the same size
+        else if (rows == 0 || columns == 0){ //matrix has to be null
             if (coefficients_ != nullptr) delete[] coefficients_;
             rows_ = rows;
             columns_ = columns;
-        } else {
+        } else { //matrix has to be expanded
             pointer = new type[rows*columns];
             for (unsigned long i = 0; i < rows; i++){
                 for (unsigned long j = 0; j < columns; j++){
-                    pointer[i*columns+j] = type(0);
+                    pointer[i*columns+j] = type(0); //zero matrix
                 }
             }
 
@@ -156,7 +163,7 @@ template <class type>
 
             for (unsigned long i = 0; i < k; i++){
                 for (unsigned long j = 0; j < l; j++){
-                    pointer[i*columns+j] = coefficients_[i*columns_+j];
+                    pointer[i*columns+j] = coefficients_[i*columns_+j]; //copy coefficients from previous matrix
                 }
             }
 
@@ -176,7 +183,7 @@ template <class type>
 template <class type>
     Matrix<type> Matrix<type>::operator+(const Matrix<type> &m) const{
         Matrix<type> *temp = new Matrix <type> (this->rows_, this->columns_);
-        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){
+        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){ //check if matrixes are the same size
             for (unsigned long i = 0; i < this->rows_; i++){
                 for (unsigned long j = 0; j < this->columns_; j++){
                     temp->set(i, j, this->get(i,j)+m.get(i,j));
@@ -188,7 +195,7 @@ template <class type>
 
 template <class type>
     Matrix<type> &Matrix<type>::operator+=(const Matrix<type> &m){
-        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){
+        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){ //check if matrixes are the same size
             for (unsigned long i = 0; i < this->rows_; i++){
                 for (unsigned long j = 0; j < this->columns_; j++){
                     this->set(i, j, this->get(i,j)+m.get(i,j));
@@ -201,7 +208,7 @@ template <class type>
 template <class type>
     Matrix<type> Matrix<type>::operator-(const Matrix<type> &m) const{
         Matrix<type> *temp = new Matrix <type> (this->rows_, this->columns_);
-        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){
+        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){ //check if matrixes are the same size
             for (unsigned long i = 0; i < this->rows_; i++){
                 for (unsigned long j = 0; j < this->columns_; j++){
                     temp->set(i, j, this->get(i,j)-m.get(i,j));
@@ -213,7 +220,7 @@ template <class type>
 
 template <class type>
     Matrix<type> &Matrix<type>::operator-=(const Matrix<type> &m){
-        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){
+        if (this->rows_ == m.get_rows() && this->columns_ == m.get_columns()){ //check if matrixes are the same size
             for (unsigned long i = 0; i < this->rows_; i++){
                 for (unsigned long j = 0; j < this->columns_; j++){
                     this->set(i, j, this->get(i,j)-m.get(i,j));
@@ -226,7 +233,7 @@ template <class type>
 template <class type>
     Matrix<type> Matrix<type>::operator*(const Matrix<type> &m) const{
         Matrix<type> *temp;
-        if (this->columns_ != m.get_rows()) {
+        if (this->columns_ != m.get_rows()) { //check size of rows and columns in both matrixes
                 temp = new Matrix<type>;
                 return *temp; //mul is not possible
         } else {
@@ -236,7 +243,7 @@ template <class type>
                 for (unsigned long j = 0; j < m.get_columns(); j++){
                     sum = type(0);
                     for (unsigned long k = 0; k < this->columns_; k++){
-                        sum += (this->get(i,k)*m.get(k,j));
+                        sum += (this->get(i,k)*m.get(k,j)); //count new coefficient
                     }
                     temp->set(i, j, sum);
                 }
@@ -249,13 +256,13 @@ template <class type>
     Matrix<type> &Matrix<type>::operator*=(const Matrix<type> &m){
         type sum;
         if (this->columns_ == m.get_rows()) {
-            Matrix<type> *temp = new Matrix <type> (*this);
-            this->expand(this->rows_, m.get_columns());
+            Matrix<type> *temp = new Matrix <type> (*this); //create temporary matrix
+            this->expand(this->rows_, m.get_columns()); //change size to appropriate
             for (unsigned long i = 0; i < temp->get_rows(); i++){
                 for (unsigned long j = 0; j < m.get_columns(); j++){
                     sum = type(0);
                     for (unsigned long k = 0; k < temp->get_columns(); k++){
-                        sum += (temp->get(i,k)*m.get(k,j));
+                        sum += (temp->get(i,k)*m.get(k,j)); //count new coefficient
                     }
                     this->set(i, j, sum);
                 }
@@ -271,10 +278,10 @@ template <class type>
         unsigned long j = 0, g = 0, k[3][2] = {{0,0},{0,0},{0,0}};
 
         if (coefficients_ == nullptr) return 0;
-        if (rows_ != columns_ || rows_ == 0) return 0;
+        if (rows_ != columns_ || rows_ == 0) return 0; //matrix is not nxn
         bool flag1 = 0, flag2 = 0;
 
-        if (n == nullptr){
+        if (n == nullptr){ //create object to use in function
             n = new char[rows_];
             std::fill(n, n+rows_*sizeof(char), 0);
             flag1 = 1;
@@ -285,7 +292,7 @@ template <class type>
             flag2 = 1;
             }
 
-        for (unsigned long i = 0; i < rows_; i++){
+        for (unsigned long i = 0; i < rows_; i++){ //get first coefficients
             if (n[i] == 0) {
                 if (j < 3) k[j][0] = i;
                 j++;
@@ -307,7 +314,7 @@ template <class type>
             determination = coefficients_[(k[0][0]*columns_)+k[0][1]]*coefficients_[(k[1][0]*columns_)+k[1][1]]-(coefficients_[(k[0][0]*columns_)+k[1][1]]*coefficients_[(k[1][0]*columns_)+k[0][1]]);
         } else if (j == 1) { //matrix 1x1 detected
             determination = coefficients_[(k[0][0]*columns_)+k[0][1]];
-        } else {
+        } else { //matrix is bigger - use Laplace expansion
             n[k[0][0]] = 1;
             for (unsigned long i = 0; i < rows_; i++)
                 if (m[i] == 0) {
@@ -345,6 +352,7 @@ template <class type>
             n[i] = 1;
             for (unsigned long j = 0; j < columns_; j++){
                 m[j] = 1;
+                //count minor
                 if ((i+j)%2 == 1) determination = (-1)*this->det(n,m);
                 else determination = this->det(n,m);
                 matrix->set(j,i, determination);
@@ -386,9 +394,10 @@ template <class type>
             n[i] = 1;
             for (unsigned long j = 0; j < columns_; j++){
                 m[j] = 1;
+                //count minor
                 if ((i+j)%2 == 1) determination = (-1)*this->det(n,m);
                 else determination = this->det(n,m);
-                matrix->set(j,i, determination/div);
+                matrix->set(j,i, determination/div); //set transposed value in invered matrix
                 m[j] = 0;
             }
             n[i] = 0;
@@ -407,17 +416,17 @@ template <class type>
 
         for (unsigned long i = 0; i < rows_; i++)
             for (unsigned long j = 0; j < columns_; j++)
-                matrix->set(j,i,this->coefficients_[(i*this->columns_)+j]);
+                matrix->set(j,i,this->coefficients_[(i*this->columns_)+j]); //copy coefficient to transposed matrix
         return matrix;
     }
 
 template <class type>
-    double* Matrix<type>::characteristic() const{
+    double* Matrix<type>::characteristic() const{ //Faddeev–LeVerrier algorithm
         if (coefficients_ == nullptr) return nullptr;
         if (rows_ != columns_ || rows_ == 0) return nullptr;
 
         double* a = new double[rows_+1];
-        type* tr = new type[rows_];
+        type* tr = new type[rows_]; //trace of matrix
 
         Matrix<type> *matrix = new Matrix<type> (this->columns_, this->rows_);
 
@@ -453,23 +462,23 @@ template <class type>
     }
 
 template <class type>
-    unsigned long Matrix<type>::deg(char* n, char* m) const{
+    unsigned long Matrix<type>::rank(char* n, char* m) const{
         bool flag1 = 0, flag2 = 0;
         unsigned long k = 0;
-        unsigned long degree = 0, temp_degree;
+        unsigned long ranks = 0, temp_ranks;
 
         if (coefficients_ == nullptr) return 0;
-        if (rows_ != columns_){
+        if (rows_ != columns_){ //expand matrix to work with det function
                 Matrix<type> *e = new Matrix<type> (*this);
                 if (rows_ > columns_) e->expand(rows_,rows_);
                 else e->expand(columns_,columns_);
 
-                degree = e->deg();
+                ranks = e->rank();
                 delete e;
-                return degree;
+                return ranks;
         }
 
-        if (n == nullptr){
+        if (n == nullptr){ //create object for function - blocks will be used for selecting rows and columns in matrix that won't be used in calculation
             n = new char[rows_];
             std::fill(n, n+rows_*sizeof(char), 0);
             flag1 = 1;
@@ -481,11 +490,11 @@ template <class type>
             }
 
         for (unsigned long i = 0; i < rows_; i++)
-            if (n[i] == 1) k++;
+            if (n[i] == 1) k++; //calculate deleted rows
 
-        if (det(n,m) != 0)
-                degree = rows_-k;
-        else if (rows_-1 <= k) degree = 0;
+        if (det(n,m) != 0) //found minor
+                ranks = rows_-k;
+        else if (rows_-1 <= k) ranks = 0;
         else {
             for (unsigned long i = 0; i < rows_; i++){
                 if (n[i] == 0){
@@ -493,25 +502,25 @@ template <class type>
                     for (unsigned long j = 0; j < columns_; j++){
                         if (m[j] == 0){
                             m[j] = 1;
-                            temp_degree = deg(n,m);
-                            if (temp_degree > degree) degree = temp_degree;
+                            temp_ranks = rank(n,m);
+                            if (temp_ranks > ranks) ranks = temp_ranks;
                             m[j] = 0;
-                            if (degree == rows_-k-1) break;
+                            if (ranks == rows_-k-1) break;
                         }
                     }
                     n[i] = 0;
-                    if (degree == rows_-k-1) break;
+                    if (ranks == rows_-k-1) break;
                 }
             }
         }
 
         if (flag1 == 1) delete[] n;
         if (flag2 == 1) delete[] m;
-        return degree;
+        return ranks;
     }
 
 template <class type>
-    char** Matrix<type>::get_minor(char* n, char* m, unsigned long matrix_degree) const{
+    char** Matrix<type>::get_minor(char* n, char* m, unsigned long matrix_ranks) const{
         unsigned long k = 0;
         char** ret;
         char** temp;
@@ -519,12 +528,12 @@ template <class type>
         if (coefficients_ == nullptr) return nullptr;
         if (rows_ != columns_ || rows_ == 0) return nullptr;
 
-        if (matrix_degree == 0){
-            matrix_degree = deg();
-            if (matrix_degree == 0) return nullptr;
+        if (matrix_ranks == 0){
+            matrix_ranks = rank();
+            if (matrix_ranks == 0) return nullptr;
         }
 
-        if (n == nullptr){
+        if (n == nullptr){ //create object for function - blocks will be used for selecting rows and columns in matrix that won't be used in finding minor
             n = new char[rows_];
             std::fill(n, n+rows_*sizeof(char), 0);
             }
@@ -540,7 +549,7 @@ template <class type>
             ret = new char* [2];
             ret[0] = n;
             ret[1] = m;
-        } else if (matrix_degree >= rows_-k) ret = nullptr;
+        } else if (matrix_ranks >= rows_-k) ret = nullptr;
         else {
             for (unsigned long i = 0; i < rows_; i++){
                 if (n[i] == 0){
@@ -548,7 +557,7 @@ template <class type>
                     for (unsigned long j = 0; j < columns_; j++){
                         if (m[j] == 0){
                             m[j] = 1;
-                            temp = get_minor(n,m,matrix_degree);
+                            temp = get_minor(n,m,matrix_ranks);
                             if (temp != nullptr) {
                                     ret = temp;
                                     break;
@@ -564,9 +573,18 @@ template <class type>
         return ret;
     }
 
+//functions for use with console interface
 template <class type>
     unsigned int Matrix<type>::Create_Matrix(Console* console, void** args){
         if (args[0] == nullptr || args[1] == nullptr || args[2] == nullptr || args[3] == nullptr) return 1;
+        if (*((unsigned int*)(args[1])) == 0){
+            (console->get_stream()) << "Bad matrix parameters. Cannot create new matrix." << std::endl;
+            return 1;
+        }
+        if (*((unsigned int*)(args[2])) == 0){
+            (console->get_stream()) << "Bad matrix parameters. Cannot create new matrix." << std::endl;
+            return 1;
+        }
         if (*((unsigned int*)(args[1]))*(*((unsigned int*)(args[2]))) != *((unsigned int*)(args[3]))){
             (console->get_stream()) << "Bad matrix parameters. Cannot create new matrix." << std::endl;
             return 1;
@@ -653,7 +671,7 @@ template <class type>
                 return 1;
         }
 
-        (console->get_stream()) << "Rank: " << ((Matrix<type> *)args[0])->deg() << std::endl;
+        (console->get_stream()) << "Rank: " << ((Matrix<type> *)args[0])->rank() << std::endl;
 
         return 0;
     }
@@ -689,8 +707,10 @@ template <class type>
             (console->get_stream()) << "Matrix is not nxn." << std::endl;
             return 1;
         }
-        for (i = 0; i < ((Matrix<type> *)args[0])->get_rows()-2; i++){
-            (console->get_stream()) << c[i] << "x^" << i << "+";
+        if (((Matrix<type> *)args[0])->get_rows() != 1){
+            for (i = 0; i < ((Matrix<type> *)args[0])->get_rows()-2; i++){
+                (console->get_stream()) << c[i] << "x^" << i << "+";
+            }
         }
         (console->get_stream()) << c[i++] << "x" << "+";
         (console->get_stream()) << c[i] << std::endl;

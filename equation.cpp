@@ -1,18 +1,18 @@
+/*
+* Name: equation.cpp
+* Purpose: Matrix and solving equations
+* @author mmodzel2
+* @version 1.0 20-04-2017
+*/
+
 #include <assert.h>
 
 #include "equation.hpp"
 
 Matrix<double> equation_independent(Matrix<double> A, Matrix<double> B){
     Matrix<double> *I = A.inverse();
-    if (I == nullptr) return A;
-    /*std::cout << "OK: " << I->get(1,1) << std::endl;
-    std::cout << "Hmm: " << ((*I)*B).get(0,0) << std::endl;
-    std::cout << "Hmm: " << ((*I)*B).get(1,0) << std::endl;
-    std::cout << "OK1: " << I->get(1,1) << std::endl;
-    Matrix<double> *II = new Matrix<double>;
-    std::cout << "OK2: " << I->get(1,1) << std::endl;
-    (*II) = ((*I)*B);
-    std::cout << "OK3: " << I->get(1,1) << std::endl;*/
+    if (I == nullptr) return A; //matrix is independent
+
     return ((*I)*B);
 }
 
@@ -21,26 +21,39 @@ std::stringstream* equation(Matrix<double> A, Matrix<double> B){
     double *s, *x;
     char** minor;
     std::stringstream* str;
+    unsigned long rank_AB;
 
     Matrix<double> *AB = new Matrix<double> (A);
 
-    AB->expand(A.get_rows(),A.get_columns()+1);
+    AB->expand(A.get_rows(),A.get_columns()+1); //expand matrix to A|B
 
     for (unsigned long i = 0; i < A.get_rows(); i++)
         AB->set(i, A.get_columns(), B.get(i,0));
 
-    if (AB->deg() != A.deg()){ //Rouché–Capelli theorem
+    rank_AB = AB->rank(); //calculate rank of expanded matrix
+    if (rank_AB == 0){ //matrix with zero coefficients
+        str = new std::stringstream[B.get_rows()];
+
+        for (i = 0; i < B.get_rows(); i++){
+            str[i].str("");
+            str[i] << "x" << i;
+        }
+        delete AB;
+        return str;
+    }
+
+    if (rank_AB != A.rank()){ //Rouché–Capelli theorem
         delete AB;
         return nullptr;
     }
     delete AB;
 
-    minor = A.get_minor();
+    minor = A.get_minor(); //get minor in which solutions are independent
 
     if (minor != nullptr){
         for (i = 0; i < A.get_rows(); i++)
             if (minor[0][i] == 0) k++;
-        Matrix<double> *m = new Matrix<double> (k,k);
+        Matrix<double> *m = new Matrix<double> (k,k); //create matrix with independent solutions
         for (i = 0; i < A.get_rows(); i++){
             if (minor[0][i] == 0){
                 for (j = 0, p = 0; j < A.get_columns(); j++){
@@ -53,7 +66,7 @@ std::stringstream* equation(Matrix<double> A, Matrix<double> B){
             }
         }
 
-        Matrix<double> *inv = m->inverse();
+        Matrix<double> *inv = m->inverse(); //inverse independent solution
         assert (inv != nullptr);
 
         delete m;
@@ -95,7 +108,8 @@ std::stringstream* equation(Matrix<double> A, Matrix<double> B){
 
         for (i = 0, l = 0; i < A.get_rows(); i++){
             if (minor[1][i] == 0){
-                str[i].str("");
+                str[i].str(""); //clean stringstream
+                //create solutions in stringstream
                 for (j = 0, p = 0; j < A.get_columns(); j++){
                      if (minor[1][j] == 1){
                             if (x[l*(k+1)+p] != 0) str[i] << x[l*(k+1)+p] << "*x" << j << "+";
@@ -104,9 +118,9 @@ std::stringstream* equation(Matrix<double> A, Matrix<double> B){
                      if (p == k){
                             if (x[l*(k+1)+p] != 0) str[i] << x[l*(k+1)+p];
                                 else {
-                                    if (str[i].str().empty()){
+                                    if (str[i].str().empty()){ //if no values in stringstream add 0
                                         str[i] << 0;
-                                    } else {
+                                    } else { //if zero on the end remove "+"
                                         str[i].seekp(-1,std::ios_base::end);
                                         str[i] << " ";
                                     }
@@ -130,6 +144,7 @@ std::stringstream* equation(Matrix<double> A, Matrix<double> B){
     return nullptr;
 }
 
+//functions to use with console interface
 unsigned int matrix_equation(Console* console, void** args){
     if (args[0] == nullptr || args[1] == nullptr){
         (console->get_stream()) << "Matrix with given name does not exist." << std::endl;
