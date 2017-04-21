@@ -1,3 +1,10 @@
+/*
+* Name: main.cpp
+* Purpose: Matrix and solving equations
+* @author mmodzel2
+* @version 1.0 20-04-2017
+*/
+
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
@@ -5,12 +12,6 @@
 #include <assert.h>
 
 #include "console.hpp"
-/*
-* Name: main.cpp
-* Purpose: Matrix and solving equations
-* @author mmodzel2
-* @version 1.0 20-04-2017
-*/
 
 #include "equation.hpp"
 #include "matrix.hpp"
