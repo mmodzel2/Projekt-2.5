@@ -12,7 +12,6 @@
 #include <assert.h>
 
 #include "console.hpp"
-
 #include "equation.hpp"
 #include "matrix.hpp"
 #include "test.hpp"
